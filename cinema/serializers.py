@@ -51,43 +51,11 @@ class MovieDetailSerializer(MovieSerializer):
         fields = ("id", "title", "description", "duration", "genres", "actors")
 
 
-class TicketMovieSessionSerializer(serializers.ModelSerializer):
-    movie_title = serializers.CharField(source="movie.title", read_only=True)
-    show_time = serializers.DateTimeField(read_only=True)
-    cinema_hall_name = serializers.CharField(
-        source="cinema_hall.name",
-        read_only=True
-    )
-    cinema_hall_capacity = serializers.IntegerField(
-        source="cinema_hall.capacity", read_only=True
-    )
-
-    class Meta:
-        model = MovieSession
-        fields = ("id", "movie_title", "show_time",
-                  "cinema_hall_name", "cinema_hall_capacity"
-                  )
-
-
 class TicketSerializer(serializers.ModelSerializer):
-    movie_session = TicketMovieSessionSerializer(read_only=True)
-    movie_session_id = serializers.PrimaryKeyRelatedField(
-        queryset=MovieSession.objects.all(),
-        source="movie_session",
-        write_only=True
-    )
 
     class Meta:
         model = Ticket
-        fields = ("id", "row", "seat", "movie_session", "movie_session_id")
-
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Ticket.objects.all(),
-                fields=["row", "seat", "movie_session"],
-                message="Ticket already exists"
-            ),
-        ]
+        fields = ("id", "row", "seat", "movie_session", )
 
 
 class TicketRowSeatSerializer(serializers.ModelSerializer):
@@ -147,6 +115,14 @@ class MovieSessionListSerializer(MovieSessionSerializer):
         )
 
 
+class TicketListSerializer(serializers.ModelSerializer):
+    movie_session = MovieSessionListSerializer(read_only=True)
+
+    class Meta:
+        model = Ticket
+        fields = ("id", "row", "seat", "movie_session",)
+
+
 class MovieSessionRetrieveSerializer(MovieSessionSerializer):
     movie = MovieListSerializer(read_only=True)
     cinema_hall = CinemaHallSerializer(many=False, read_only=True)
@@ -162,7 +138,7 @@ class MovieSessionRetrieveSerializer(MovieSessionSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    tickets = TicketSerializer(many=True)
+    tickets = TicketListSerializer(many=True)
 
     class Meta:
         model = Order
