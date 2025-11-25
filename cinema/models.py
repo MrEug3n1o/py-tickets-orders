@@ -85,7 +85,7 @@ class Ticket(models.Model):
     seat = models.IntegerField()
 
     class Meta:
-        unique_together = ["row", "seat"]
+        unique_together = ["row", "seat", "movie_session"]
 
     def clean(self):
         for ticket_attr_value, ticket_attr_name, cinema_hall_attr_name in [

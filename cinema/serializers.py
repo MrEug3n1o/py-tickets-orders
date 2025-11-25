@@ -57,12 +57,6 @@ class TicketSerializer(serializers.ModelSerializer):
         model = Ticket
         fields = ("id", "row", "seat", "movie_session", )
 
-
-class TicketRowSeatSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Ticket
-        fields = ("row", "seat")
-
     def validate(self, data):
 
         movie_session = data.get("movie_session")
@@ -126,16 +120,19 @@ class TicketListSerializer(serializers.ModelSerializer):
 class MovieSessionRetrieveSerializer(MovieSessionSerializer):
     movie = MovieListSerializer(read_only=True)
     cinema_hall = CinemaHallSerializer(many=False, read_only=True)
-    taken_places = TicketRowSeatSerializer(
-        many=True,
-        read_only=True,
-        source="tickets"
-    )
+    taken_places = serializers.SerializerMethodField()
+
 
     class Meta:
         model = MovieSession
         fields = ("id", "show_time", "movie", "cinema_hall", "taken_places")
 
+    def get_taken_places(self, obj):
+        return Ticket.objects.filter(movie_session=obj).values("row", "seat")
+
+
+class TicketCreateSerializer(serializers.ModelSerializer):
+    pass
 
 class OrderSerializer(serializers.ModelSerializer):
     tickets = TicketListSerializer(many=True)
@@ -151,3 +148,4 @@ class OrderSerializer(serializers.ModelSerializer):
             for ticket_data in tickets_data:
                 Ticket.objects.create(order=order, **ticket_data)
         return order
+

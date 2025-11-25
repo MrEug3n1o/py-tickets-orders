@@ -125,7 +125,7 @@ class MovieSessionViewSet(viewsets.ModelViewSet):
 
 
 class OrderPagination(PageNumberPagination):
-    page_size = 10
+    pass
 
 
 class OrderViewSet(viewsets.ModelViewSet):
